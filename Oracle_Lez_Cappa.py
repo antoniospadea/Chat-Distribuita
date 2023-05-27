@@ -3,7 +3,8 @@
 
 import socket
 from threading import Thread
-
+import random
+import json
 
 class Oracle:
     def __init__(self, nick, ip, port):
@@ -38,13 +39,33 @@ class Oracle:
         if message.startswith('-r'):
             message = message[3:]
             if message not in self.peer_list.keys():
-                # Salviamo la porta ma -2
-                peer = (address[0], address[1]-2)
-                self.peer_list[message] = peer
-                # Invia la conferma di registrazione al Peer
-                response = f"Registrazione di {message} avvenuta con successo"
-                self.registr_socket.sendto(response.encode(), address)
-                print(f"Lista dei Peer registrati: {self.peer_list}")
+                # Voglio anche inviare 3 peer random al peer che si è registrato cosi che possa inserirli nella sua lista dei vicini
+                # Devo passare sia il nickname (che è la chiave del dizionario) che l'indirizzo e la porta (che è il valore del dizionario)
+                # Per fare questo devo prima creare una lista di chiavi e poi estrarre tre chiavi random
+                # Questo va fatto se però la lista dei peer registrati è maggiore di tre
+                if len(self.peer_list) > 3:
+                    # Creo la lista dei vicini usando il dizionario peer_list e la libreria json
+                    # Estraggo 3 chiavi random
+                    random_keys = random.sample(list(self.peer_list.keys()), 3)
+                    # Estraggo i valori corrispondenti alle chiavi
+                    random_values = [self.peer_list[key] for key in random_keys]
+                    # Creo la lista dei vicini in modo che sia facile da ricevere dal Peer
+                    neighbors = json.dumps(dict(zip(random_keys, random_values)))
+                    # Salviamo la porta ma -2
+                    peer = (address[0], address[1]-2)
+                    self.peer_list[message] = peer
+                    # Invia i vicini al Peer con davanti il tag -d (done) cosi che sappia che la registrazione è andata a buon fine
+                    response = f"-d{neighbors}"
+                    self.registr_socket.sendto(response.encode(), address)
+                    print(f"Lista dei Peer registrati: {self.peer_list}")
+                else:
+                    # invio solo il messaggio di conferma
+                    peer = (address[0], address[1]-2)
+                    self.peer_list[message] = peer
+                    # Invia il tag -pd (partially done) cosi che sappia che la registrazione è andata a buon fine
+                    response = f"-pd"
+                    self.registr_socket.sendto(response.encode(), address)
+                    print(f"Lista dei Peer registrati: {self.peer_list}")
             else:
                 response = f"{message} non disponibile"
                 self.registr_socket.sendto(response.encode(), address)

@@ -8,7 +8,7 @@
 import socket
 from random import randint
 from threading import Thread
-import time
+import json
 
 
 class Peer:
@@ -57,8 +57,22 @@ class Peer:
         # altrimenti mi richiederà un nuovo nickname e io reinvierò il messaggio di registrazione
         response, oracle_address = self.oracle_socket.recvfrom(1024)
         response = response.decode()
-        if response == f"Registrazione di {self.nickname} avvenuta con successo":
-            print(response)
+        # Se tutto è andato a buon fine, l'oracolo potrà scrivermi o il tag -d seguito dai dati dei vicini, oppure il tag
+        # -pd senza vicini oppure un messaggio se il nickname è già presente nella rete
+        if response.startswith('-d'):
+            # Va gestito il passaggio dei vicini del messaggio al dizionario dei vicini
+            # la risposta è un tag -d e poi un json con i vicini
+            response = response.split('-d')[1]
+            # Dobbiamo però salvare questi vicini nel dizionario avendo i valori come tuple non liste
+            response = json.loads(response)
+            for key in response.keys():
+                response[key] = tuple(response[key])
+            self.neighbor_list.update(response)
+            print("Registrazione completata con successo")
+            # Printo la lista dei vicini
+            print(f"Lista dei Vicini: {self.neighbor_list}")
+        elif response == '-pd':
+            print("Registrazione completata con successo, nessun vicino disponibile")
         elif response == f"{self.nickname} non disponibile":
             print(response)
             self.nickname = input("Inserisci un nuovo nickname: ")
@@ -87,8 +101,15 @@ class Peer:
     def send_query(self, nick):
         query_data = f"-q {nick}"
         for neighbor in self.neighbor_list.values():
-            self.neighbor_socket.sendto(query_data.encode(), neighbor)
-            response, neighbor_address = self.neighbor_socket.recvfrom(1024)
+            # Invio il messaggio di query al vicino usando la sua porta + 1
+            self.neighbor_socket.sendto(query_data.encode(), (neighbor[0], neighbor[1] + 1))
+            # Mettiamo un timeout di 5 secondi per la risposta
+            self.neighbor_socket.settimeout(5)
+            try:
+                response, neighbor_address = self.neighbor_socket.recvfrom(1024)
+            except socket.timeout:
+                # Se il vicino non risponde entro 5 secondi, passo al vicino successivo
+                continue
             response = response.decode()
             if response == f"-n":
                 # passa al vicino successivo
@@ -147,7 +168,7 @@ class Peer:
     def start_threads(self):
         self.SM.start()
         self.RM.start()
-        self.RQ.start()
+        #self.RQ.start()
 
 
 # Creiamo un peer per testare il funzionamento della classe
