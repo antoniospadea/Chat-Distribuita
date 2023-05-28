@@ -13,10 +13,15 @@ Questo programma implementa una rete Peer-to-Peer (P2P) utilizzando Python. La r
 
 La classe `Oracle` rappresenta l'oracolo nella rete P2P. Funge da registro centralizzato per i peer registrati e gestisce le richieste di registrazione e query. Di seguito sono elencati i metodi principali della classe:
 
-- `__init__(self, nick, ip, port)`: Il metodo di inizializzazione dell'oracolo. Imposta l'indirizzo IP, la porta e il nickname dell'oracolo, oltre a creare il socket necessario.
-- `peer_registration(self, message, address)`: Gestisce le richieste di registrazione da parte dei peer. Aggiunge o rimuove i peer registrati alla lista `peer_list` e invia conferme ai peer interessati.
-- `peer_query(self, message, address)`: Gestisce le richieste di query da parte dei peer. Invia le informazioni richieste sui peer registrati o un messaggio di non disponibilità.
-- `receive_message(self)`: Riceve i messaggi dai peer registrati. Utilizza un thread separato per gestire le richieste di registrazione e query in modo asincrono.
+ `__init__(self, nick, ip, port)`: Il metodo di inizializzazione dell'oracolo. Imposta l'indirizzo IP, la porta e il nickname dell'oracolo, oltre a creare il socket necessario.
+- `peer_registration(self, message, address)`: Gestisce le richieste di registrazione da parte dei peer, aggiungendo o rimuovendo i peer registrati dalla lista e inviando conferme ai peer interessati.
+- `peer_query(self, message, address)`: Gestisce le richieste di query da parte dei peer, restituendo le informazioni richieste sui peer registrati o un messaggio di non disponibilità.
+- `receive_message(self)`: Riceve i messaggi inviati dai peer registrati e li instrada alle funzioni appropriate in base al tag del messaggio.
+- `receive_query(self)`: Riceve le richieste di query dai peer e le gestisce, inviando le risposte corrispondenti.
+- `receive_communication(self)`: Riceve i messaggi di comunicazione da altri oracoli e aggiorna la lista dei peer registrati in base ai messaggi ricevuti.
+- `send_communication(self, tag, nick, address)`: Invia messaggi di comunicazione ad altri oracoli per aggiornare le loro liste dei peer registrati.
+- `start_threads(self)`: Avvia i thread per gestire le diverse comunicazioni in modo asincrono.
+
 
 
 ### Classe Peer
