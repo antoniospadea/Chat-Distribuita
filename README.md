@@ -1,5 +1,5 @@
-# Rete Peer-to-Peer con Oracoli
-
+# Rete Peer-to-Peer con Oracoli            CHAT A.D.A
+***
 Questo repository contiene un'implementazione in Python di una rete peer-to-peer con oracoli. La rete consiste in diversi peer che comunicano tra loro tramite gli oracoli, che fungono da server di registrazione.
 
 ## Introduzione
@@ -11,13 +11,13 @@ L'architettura prevede l'utilizzo di tre `Oracle`, ognuno dei quali tiene tracci
 
 Per registrarsi, il `Peer` deve inserire il proprio `nickname`, che può contenere solo caratteri alfanumerici. Una volta registrato, il `Peer` procede a contattare gli altri `Peer` per scambiarsi messaggi.
 
-Nel processo di comunicazione, il `Peer` cerca l'indirizzo del `Peer desiderato` tra i suoi vicini. Nel caso in cui non riesca a trovarlo, il `Peer` chiede ai vicini e, come ultima risorsa, si rivolge all'`Oracle`. Una volta ottenuto l'indirizzo, il `Peer` cripta il messaggio utilizzando un algoritmo di crittografia a chiave asimmetrica (RSA) e aspetta la conferma di avvenuta ricevuta (ACK). Il `Peer` destinatario riceve il messaggio, lo decripta e invia l'ACK di conferma criptato al `Peer` che gli ha inviato il messaggio.
+Nel processo di comunicazione, il `Peer` cerca l'indirizzo del `Peer_desiderato` tra i suoi vicini. Nel caso in cui non riesca a trovarlo, il `Peer` chiede ai vicini e, come ultima risorsa, si rivolge all'`Oracle`. Una volta ottenuto l'indirizzo, il `Peer` cripta il messaggio utilizzando un algoritmo di crittografia a chiave asimmetrica (RSA) e aspetta la conferma di avvenuta ricevuta (ACK). Il `Peer` destinatario riceve il messaggio, lo decripta e invia l'ACK di conferma criptato al `Peer` che gli ha inviato il messaggio.
 
-Durante il processo di comunicazione, il `Peer` si impegna nella ricerca dell'indirizzo del `Peer_desiderato` tra i suoi vicini più prossimi. Nel caso in cui tale indirizzo non sia reperibile, il `Peer` si rivolge ai vicini stessi, facendo appello alla loro disponibilità, e, come ultima risorsa, si affida all'`Oracle` per ottenere l'informazione ricercata. Una volta ottenuto l'indirizzo, il `Peer` adotta una strategia di sicurezza avanzata: cripta il messaggio tramite l'utilizzo di un sofisticato algoritmo di crittografia a chiave asimmetrica noto come RSA, rimanendo in attesa dell'importante conferma di avvenuta ricevuta (ACK). Al raggiungimento del destinatario, il messaggio viene decriptato con la massima precisione e accuratezza. Infine, per stabilire la corretta ricezione e comprensione del messaggio, il `Peer_desiderato` invia un'ACK di conferma, a sua volta criptato, al pe`Peer`er mittente.
+Durante il processo di comunicazione, il `Peer` si impegna nella ricerca dell'indirizzo del `Peer_desiderato` tra i suoi vicini più prossimi. Nel caso in cui tale indirizzo non sia reperibile, il `Peer` si rivolge ai vicini stessi, facendo appello alla loro disponibilità, e, come ultima risorsa, si affida all'`Oracle` per ottenere l'informazione ricercata. Una volta ottenuto l'indirizzo, il `Peer` adotta una strategia di sicurezza avanzata: cripta il messaggio tramite l'utilizzo di un sofisticato algoritmo di crittografia a chiave asimmetrica noto come RSA, rimanendo in attesa dell'importante conferma di avvenuta ricevuta (ACK). Al raggiungimento del destinatario, il messaggio viene decriptato con la massima precisione e accuratezza. Infine, per stabilire la corretta ricezione e comprensione del messaggio, il `Peer_desiderato` invia un'ACK di conferma, a sua volta criptato, al `Peer` mittente.
 
 ## Funzionamento
 
-Abbiamo 9 file: `Peer.py`, `Oracle.py`, `Chat.py`, `Query.py`, `Crypto.py`, `Communication.py`, `Setup.py`, `Realignment.py`, `Registration.py`. Il file `Peer.py` contiene la classe `Peer` che serve per creare l'oggetto `peer` con tutti i metodi per la registrazione, la ricezione della comunicazione e l'invio di messaggi. Il metodo `send_message` si occupa dell'invio dei messaggi, il metodo `receive_message` per la ricezione dei messaggi, e infine il metodo `receive_query` riceve le risposte alle query fatte all'oracolo. Viene anche utilizzato un metodo `threading` per avviare 3 thread che gestiranno i metodi.
+Abbiamo 11 file: `Peer.py`, `Oracle1.py`, `Oracle2.py`, `Oracle3.py`, `chat.py`, `query.py`, `crypto.py`, `communication.py`, `setup.py`, `realignment.py`, `registration.py`. Il file `Peer.py` contiene la classe `Peer` che serve per creare l'oggetto `peer` con tutti i metodi per la registrazione, la ricezione della comunicazione e l'invio di messaggi. Il metodo `send_message` si occupa dell'invio dei messaggi, il metodo `receive_message` per la ricezione dei messaggi, e infine il metodo `receive_query` riceve le risposte alle query fatte all'oracolo. Viene anche utilizzato un metodo `threading` per avviare 3 thread che gestiranno i metodi.
 
 Poi abbiamo il file `Oracle.py` che contiene la classe `Oracle` che serve per istanziare un oggetto `oracolo` con tutti i suoi metodi per ricevere le query dai peer tramite il metodo `receive_query`, ricevere le registrazioni tramite `receive_from_oracle`, e per avviare i thread che gestiscono le operazioni su `oracle_setup`.
 
@@ -50,7 +50,7 @@ Il metodo `send_query` invia una richiesta di query ai vicini utilizzando il fla
 
 Se l'indirizzo viene trovato, l'utente può inserire il messaggio da inviare tramite input. Il messaggio non può superare i 100 caratteri. Successivamente, viene chiamato il metodo `sending`, che ha come parametri il messaggio da inviare e l'indirizzo a cui inviarlo. Questo metodo cripta il messaggio utilizzando il metodo `crypt` e lo invia al peer destinatario tramite la socket `peer_socket`. Il metodo `receive_message`, che rimane sempre in ascolto, prende il messaggio e l'indirizzo del peer mittente e chiama il metodo `receiving`. Questo metodo decifra il messaggio utilizzando il metodo `decrypt` e controlla se il nickname del peer mittente è un suo vicino. Se non lo è, viene chiamato il metodo `ask_key`, che invia una stringa contenente il flag `-k` e il nickname di cui si desidera ottenere la chiave pubblica tramite la socket `oracle_socket`. L'oracolo riceve la query sulla socket `query_socket` nel metodo `receive_query` e chiama il metodo `give_key` per cercare nella propria lista la chiave e inviarla. Una volta ricevuta la chiave, il metodo `receiving` salva il nuovo vicino nella propria lista `peer_list` e lo registra. In entrambi i casi, sia se il peer mittente è un vicino sia se non lo è, il metodo stampa sul terminale il nickname del mittente e il messaggio ricevuto. Infine, viene inviato un ack di conferma di ricezione sulla socket `peer_socket` tramite il metodo `send_ack`, che viene ricevuto dal peer mittente tramite il metodo `receiving_ack`.
 
-### Comunicazione Tra i Peer Vollero, Petrosino e Merone
+### Comunicazione tra i Peer Vollero, Petrosino e Merone
 
 >Esempio di comunicazione tra 3 Peer visto dal terminale di Peer.py con nickname Vollero
 ![Avvio dell'Oracolo senza nessun Peer Registrato](./Foto/Esempio_Chat3.jpeg)
@@ -77,7 +77,7 @@ La classe `Oracle` ha i seguenti metodi principali:
 
 ## Classe Peer
 
-Il file `Peer_Lez_Cappa.py` contiene l'implementazione della classe `Peer`, che rappresenta un peer nella rete P2P. Ogni peer viene assegnato un indirizzo IP e un numero di porta casuali e si registra presso gli oracoli per unirsi alla rete.
+Il file `Peer.py` contiene l'implementazione della classe `Peer`, che rappresenta un peer nella rete P2P. Ogni peer viene assegnato un indirizzo IP e un numero di porta casuali e si registra presso gli oracoli per unirsi alla rete.
 
 La classe `Peer` ha i seguenti metodi principali:
 
@@ -162,3 +162,5 @@ python Peer.py
 # Contributi
 Sono benvenuti contributi a questo progetto. Se si riscontrano problemi o si hanno suggerimenti per miglioramenti, è possibile aprire una segnalazione o inviare una richiesta di modifica.
 
+# Ringraziamenti
+Ringraziamo tutti coloro che con ardire e pazienza sono arrivati fino in fondo alla documentazione! 
