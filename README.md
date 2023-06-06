@@ -147,10 +147,12 @@ python Oracle2.py
 ```
 python Oracle3.py
 ```
+## Avviare i Peer
 Per avviare un `Peer` apri un terminale nella `directory` del progetto e esegui il seguente comando per avviare il file `Peer.py`
 ```
 python Peer.py
 ```
+>`AVVISO!` Ogni volta che si avvia un `Peer` si consiglia di avviare prima gli `Oracoli`, in caso ci fosse un errore sulla registrazione di un `Peer` riavviare il terminale di quel `Peer` e riprovare. Per Effettuare i test le porte dei `Peer` vengono assegnate casualmente e nella sfortunata circostanza in cui ci fossero due Peer iniziallizati sulla stessa porta, questo genererebbe un `Errore`.
 # Requisiti
 
 - Python 3.x
