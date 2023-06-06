@@ -4,6 +4,19 @@ import socket
 
 
 def peer_query(socket, list, message, address):
+    """
+    La funzione prende message e lo invia alla socket
+
+    Parameters
+    ----------
+    socket : socket a cui si vuole inviare il messagge
+    list : lista in cui si vuole cercare il messagge
+    message : stringa che contiene il tag '-q' e il nickname
+    address : tupla di 3 elementi:
+        1. stringa dell'indirizzo ip
+        2. numero intero della porta 
+        3. la stringa della chiave pubblica
+    """
     query_nick = message.split('-q')[1]
     if query_nick in list.keys():
         response = f"{list[query_nick][0]}:{list[query_nick][1]}:{list[query_nick][2]}"
@@ -14,6 +27,21 @@ def peer_query(socket, list, message, address):
 
 
 def give_key(socket, list, message, address):
+    """
+    La funzione invia alla socket la chiave del nickname che si trova nella 
+    lista
+
+    Parameters
+    ----------
+    socket : socket a cui si vuole inviare la chiave
+    list : lista in cui si vuole cercare la chiave
+    message : stringa che contiene il tag '-k' e il nickname
+    address : tupla di 3 elementi:
+        1. stringa dell'indirizzo ip
+        2. numero intero della porta 
+        3. la stringa della chiave pubblica
+
+    """
     query_nick = message.split('-k')[1]
     if query_nick in list.keys():
         response = f"-k{list[query_nick][2]}"
@@ -26,6 +54,19 @@ def give_key(socket, list, message, address):
 #####################################  FUNZIONI QUERY PEER  ###################################################
 
 def query_neighbors(peer, query_data):
+    """
+    La funzione cerca l'indirizzo tra i vicini del peer
+
+    Parameters
+    ----------
+    peer : è un'istanza
+    query_data : è una stringa contenente il tag '-q' e il nickname
+
+    Returns
+    -------
+    l'ip, la porta e la chiave che si sta cercando
+
+    """
     for neighbor in peer.neighbor_list.values():
         peer.query_socket.sendto(query_data.encode(), (neighbor[0], neighbor[1] + 1))
         peer.query_socket.settimeout(2)
@@ -48,6 +89,18 @@ def query_neighbors(peer, query_data):
 
 
 def query_oracle(peer, query_data):
+    """
+    La funzione chiede l'indirizzo all'oracolo
+
+    Parameters
+    ----------
+    peer : è un'istanza
+    query_data : è una stringa contenente il tag '-q' e il nickname
+
+    Returns
+    -------
+    l'ip, la porta e la chiave che si sta cercando
+    """
     for oracle in peer.oracle_ports:
         try:
             oracle = ('127.0.0.1', oracle - 2)
@@ -67,6 +120,19 @@ def query_oracle(peer, query_data):
 
 
 def send_query(peer, nick):
+    """
+    La funzione restituisce l'indirizzo del nick che si sta cercando
+
+    Parameters
+    ----------
+    peer : è un'istanza della classe Peer
+    nick : stringa
+
+    Returns
+    -------
+    l'ip, la porta e la chiave che si sta cercando.
+
+    """
     query_data = f"-q{nick}"
     ip, port, key = query_neighbors(peer, query_data)
     if ip is None and port is None and key is None:
@@ -76,6 +142,19 @@ def send_query(peer, nick):
 
 # Creiamo un metodo che ci permetta di chiedere all'oracolo la chiave pubblica di un peer dato il suo nick
 def ask_key(peer, nick):
+    """
+    La funzione riceve dalla socket la chiave del nickname 
+
+    Parameters
+    ----------
+    peer : è un'istanza della classe Peer
+    nick : la stringa del nickname di cui si vuole avere la chiave
+
+    Returns
+    -------
+    key : chiave pubblica
+
+    """
     query_data = f"-k{nick}"
     for oracle in peer.oracle_ports:
         try:
