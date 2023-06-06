@@ -35,7 +35,7 @@ Ora passiamo a descrivere la comunicazione tra i peer. Dopo la registrazione, qu
 
 Il metodo `get_nick` controlla se il nickname è uguale a quello del mittente del messaggio e, in tal caso, restituisce un messaggio di errore e richiede di inserire un altro nickname, poiché non è possibile inviare messaggi a se stessi. Successivamente, verifica se nell'input vengono inseriti comandi speciali come `-d` e `-l`, che servono rispettivamente per disconnettersi e visualizzare la lista dei vicini disponibili nella `peer_list` del peer. Una volta trovato un nickname valido tramite il metodo `get_address`, vengono recuperate la porta e la chiave pubblica del destinatario del messaggio. Il metodo `get_address` verifica prima se le informazioni sono presenti nella `peer_list`. Se non sono presenti, viene chiamato il metodo `send_query`, che si occupa di cercare le informazioni necessarie per la comunicazione, prima tra i vicini e successivamente chiedendo all'oracolo, in modo da non sovraccaricarlo di richieste.
 
-Il metodo `send_query` invia una richiesta di query ai vicini utilizzando il flag `-q`, che viene gestito dal metodo `query_neighbors`. Viene inviata una richiesta a tutti i vicini del peer tramite la socket `query_socket`, a cui i vicini rimangono in ascolto. I vicini, tramite il thread attivo su `receive_query`, ricevono la richiesta del peer che desidera inviare il messaggio. A questo punto, il vicino gestisce il flag `-q` e utilizza il metodo `peer_query` per cercare nella propria `peer_list` il peer destinatario. Se il peer viene trovato, le informazioni sull'indirizzo e la chiave pubblica del destinatario vengono restituite al peer mittente. Se il peer non viene trovato nella `peer_list`, il vicino richiede le informazioni all'oracolo tramite il metodo `query_Oracle`. Questo metodo scorre le porte degli oracoli e invia una stringa che contiene il tag `-q` e il nickname cercato tramite la socket `oracle_socket`. L'oracolo, tramite il metodo `receive_query`, gestisce la richiesta con il flag ACK `-q` e chiama il metodo `peer_query` per cercare nella propria lista di peer il peer destinatario. Se il peer viene trovato, le informazioni vengono restituite al peer mittente. Se il peer non viene trovato, l'oracolo restituisce tramite il tag `-n` e imposta l'indirizzo come (None, None, None), che viene quindi restituito al metodo `send_message`. A questo punto, viene stampato `Peer non trovato` sul terminale.
+Il metodo `send_query` invia una richiesta di query ai vicini utilizzando il flag `-q`, che viene gestito dal metodo `query_neighbors`. Viene inviata una richiesta a tutti i vicini del peer tramite la socket `query_socket`, a cui i vicini rimangono in ascolto. I vicini, tramite il thread attivo su `receive_query`, ricevono la richiesta del peer che desidera inviare il messaggio. A questo punto, il vicino gestisce il flag `-q` e utilizza il metodo `peer_query` per cercare nella propria `peer_list` il peer destinatario. Se il peer viene trovato, le informazioni sull'indirizzo e la chiave pubblica del destinatario vengono restituite al peer mittente. Se il peer non viene trovato nella `peer_list`, il vicino richiede le informazioni all'oracolo tramite il metodo `query_Oracle`. Questo metodo scorre le porte degli oracoli e invia una stringa che contiene il tag `-q` e il nickname cercato tramite la socket `oracle_socket`. L'oracolo, tramite il metodo `receive_query`, gestisce la richiesta con il flag `-q` e chiama il metodo `peer_query` per cercare nella propria lista di peer il peer destinatario. Se il peer viene trovato, le informazioni vengono restituite al peer mittente. Se il peer non viene trovato, l'oracolo restituisce tramite il tag `-n` e imposta l'indirizzo come (None, None, None), che viene quindi restituito al metodo `send_message`. A questo punto, viene stampato `Peer non trovato` sul terminale.
 
 Se l'indirizzo viene trovato, l'utente può inserire il messaggio da inviare tramite input. Il messaggio non può superare i 100 caratteri. Successivamente, viene chiamato il metodo `sending`, che ha come parametri il messaggio da inviare e l'indirizzo a cui inviarlo. Questo metodo cripta il messaggio utilizzando il metodo `crypt` e lo invia al peer destinatario tramite la socket `peer_socket`. Il metodo `receive_message`, che rimane sempre in ascolto, prende il messaggio e l'indirizzo del peer mittente e chiama il metodo `receiving`. Questo metodo decifra il messaggio utilizzando il metodo `decrypt` e controlla se il nickname del peer mittente è un suo vicino. Se non lo è, viene chiamato il metodo `ask_key`, che invia una stringa contenente il flag `-k` e il nickname di cui si desidera ottenere la chiave pubblica tramite la socket `oracle_socket`. L'oracolo riceve la query sulla socket `query_socket` nel metodo `receive_query` e chiama il metodo `give_key` per cercare nella propria lista la chiave e inviarla. Una volta ricevuta la chiave, il metodo `receiving` salva il nuovo vicino nella propria lista `peer_list` e lo registra. In entrambi i casi, sia se il peer mittente è un vicino sia se non lo è, il metodo stampa sul terminale il nickname del mittente e il messaggio ricevuto. Infine, viene inviato un ack di conferma di ricezione sulla socket `peer_socket` tramite il metodo `send_ack`, che viene ricevuto dal peer mittente tramite il metodo `receiving_ack`.
 
@@ -103,21 +103,33 @@ git clone https://github.com/antoniospadea/Chat-Distribuita.git
 
 ```
 ## Creare ed attivare un ambiente virtuale: 
-
 ```
 python -m venv ChatP2P_ambiente_virtuale
 
-```
-```
 source nome_ambiente_virtuale/bin/activate
 
 ```
 ## Installare le dipendenze
-
 ```
 pip install -r requirements.txt
 
 ```
+
+## Avviare i tre Oracoli
+Aprire un terminale nella directory del progetto e avviare i tre file su 3 terminali diversi, con i seguenti comandi
+Terminale 1
+```
+python Oracle1.py
+```
+Terminale 2
+```
+python Oracle2.py
+```
+Terminale 3
+```
+python Oracle3.py
+```
+
 # Requisiti
 
 - Python 3.x
