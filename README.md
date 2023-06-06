@@ -21,21 +21,25 @@ Abbiamo 9 file: `Peer.py`, `Oracle.py`, `Chat.py`, `Query.py`, `Crypto.py`, `Com
 
 Poi abbiamo il file `Oracle.py` che contiene la classe `Oracle` che serve per istanziare un oggetto `oracolo` con tutti i suoi metodi per ricevere le query dai peer tramite il metodo `receive_query`, ricevere le registrazioni tramite `receive_from_oracle`, e per avviare i thread che gestiscono le operazioni su `oracle_setup`.
 
-### Schermate Iniziali 
-![Avvio dell'Oracolo senza nessun Peer Registrato](./Foto/PeerVollero.jpeg)
-
 ### Registrazione:
+
 #### Parte Peer:
 Ora iniziamo a descrivere l'operazione di registrazione. Quando il peer viene istanziato, viene eseguita una funzione chiamata `connection()` a cui viene passato il parametro `-r`, che identifica la registrazione come operazione. All'interno di `connection()`, verrà attivata la parte di codice per il parametro `-r` e verrà chiamata la funzione `register_with_oracle`. Viene quindi creato il messaggio di registrazione che include il nickname e la chiave pubblica del peer creati durante l'istanziazione. Il messaggio di registrazione viene inviato tramite `oracle_socket` alla porta `oracle_ports`, che sarà una tra 9999, 9996 o 9993. Questa porta predefinita verrà assegnata casualmente, in modo che il peer abbia un oracolo predefinito da utilizzare di default per le comunicazioni. Successivamente, il peer si mette in ascolto su `oracle_socket` in attesa della risposta dell'oracolo.
 
-### Esempio di Registrazione
+### Esempio Peer.py
 
-![Avvio dell'Oracolo senza nessun Peer Registrato](./Foto/Esempio_Oracle_registrazione_completo.jpeg)
+>Esempio di registrazione del Peer con nickname Vollero visto dal terminale di Peer.py
+![Avvio dell'Oracolo senza nessun Peer Registrato](./Foto/PeerVollero.jpeg)
 
 #### Parte Oracolo:
 Quando l'oracolo viene istanziato, crea 3 thread come accennato in precedenza: uno con il metodo `receive_query`, uno con `receive_from_oracle` e uno con `receive_registration`. L'oracolo ha la socket `register_socket` sintonizzata, che viene avviata dal thread collegato al metodo `receive_registration`. Questo thread analizza la richiesta e, individuando il flag `-r`, avvia la registrazione. Per prima cosa, il metodo verifica tramite `check_nickname` se il nickname è già stato utilizzato. In caso positivo, viene restituito un messaggio in cui si dice che il peer è già stato utilizzato e il metodo `check_nickname` non restituisce nulla. In caso negativo, viene restituito il nickname e viene registrato in `oracle.peer_list`.
 
 A questo punto ci sono due casi: se all'inizio non ci sono peer registrati, l'oracolo non restituirà nulla con il flag `-pr`; altrimenti restituirà il flag `-r` con una lista di vicini generata da `oracle.peer_list` in modo casuale. `peer_registration` chiama quindi il metodo `send_registration` per aggiornare gli altri oracoli con il nuovo peer che si è aggiunto alla rete. Infine, viene stampata la lista dei peer in `peer_list` nel terminale dell'oracolo.
+
+### Esempio Oracle.py
+
+>Esempio di stampa della peer_list sul terminale di Oracle.py 
+![Avvio dell'Oracolo senza nessun Peer Registrato](./Foto/Esempio_Oracle_registrazione_completo.jpeg)
 
 ### Comunicazione:
 Ora passiamo a descrivere la comunicazione tra i peer. Dopo la registrazione, quando viene avviata la classe `Peer`, vengono avviati 3 thread che gestiscono i metodi `receive_query`, `receive_message` e `send_message`. I primi due rimangono in ascolto sulle rispettive socket `query_socket` e `peer_socket`, mentre `send_message` utilizza la socket `peer_socket` per inviare messaggi. Prima di avviare l'invio di un messaggio, il metodo `send_message` stampa le istruzioni per inviare messaggi e richiede all'utente a chi si desidera inviare un messaggio. Il metodo imposta la variabile `ack` a False, che servirà per verificare se il messaggio è stato inviato correttamente. Successivamente, vengono chiamati i metodi `get_nick` e `get_address` per recuperare le informazioni necessarie per avviare la comunicazione con il nickname indicato dall'utente in `get_nick`.
@@ -46,12 +50,9 @@ Il metodo `send_query` invia una richiesta di query ai vicini utilizzando il fla
 
 Se l'indirizzo viene trovato, l'utente può inserire il messaggio da inviare tramite input. Il messaggio non può superare i 100 caratteri. Successivamente, viene chiamato il metodo `sending`, che ha come parametri il messaggio da inviare e l'indirizzo a cui inviarlo. Questo metodo cripta il messaggio utilizzando il metodo `crypt` e lo invia al peer destinatario tramite la socket `peer_socket`. Il metodo `receive_message`, che rimane sempre in ascolto, prende il messaggio e l'indirizzo del peer mittente e chiama il metodo `receiving`. Questo metodo decifra il messaggio utilizzando il metodo `decrypt` e controlla se il nickname del peer mittente è un suo vicino. Se non lo è, viene chiamato il metodo `ask_key`, che invia una stringa contenente il flag `-k` e il nickname di cui si desidera ottenere la chiave pubblica tramite la socket `oracle_socket`. L'oracolo riceve la query sulla socket `query_socket` nel metodo `receive_query` e chiama il metodo `give_key` per cercare nella propria lista la chiave e inviarla. Una volta ricevuta la chiave, il metodo `receiving` salva il nuovo vicino nella propria lista `peer_list` e lo registra. In entrambi i casi, sia se il peer mittente è un vicino sia se non lo è, il metodo stampa sul terminale il nickname del mittente e il messaggio ricevuto. Infine, viene inviato un ack di conferma di ricezione sulla socket `peer_socket` tramite il metodo `send_ack`, che viene ricevuto dal peer mittente tramite il metodo `receiving_ack`.
 
-### Esempio di comunicazione
+### Comunicazione Tra i Peer Vollero, Petrosino e Merone
 
-![Avvio dell'Oracolo senza nessun Peer Registrato](./Foto/Chat1_Completa.jpg)
-
-### Comunicazione a 3 Peer
-
+>Esempio di comunicazione tra 3 Peer visto dal terminale di Peer.py con nickname Vollero
 ![Avvio dell'Oracolo senza nessun Peer Registrato](./Foto/Esempio_Chat3.jpeg)
 
 >Altre immagini dimostrative sono nella cartella Foto
