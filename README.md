@@ -5,7 +5,7 @@ Questo repository contiene un'implementazione in Python di una rete peer-to-peer
 ## Introduzione
 Questo programma implementa una rete Peer-to-Peer (P2P) utilizzando Python. La rete consente ai peer di comunicare tra loro senza la necessità di un server centrale. Ogni peer agisce sia come client che come server, consentendo lo scambio di informazioni dirette tra di loro. Il programma include due classi principali: `Peer` e `Oracle`. La classe `Peer` rappresenta un peer nella rete e si occupa della comunicazione e dell'interazione con altri peer, mentre la classe `Oracle` funge da registro centralizzato per i peer registrati.
 
-## DESCRIZIONE DELL'ARCHITETTURA
+## Descrizipne dell'architettura
 
 L'architettura prevede l'utilizzo di tre `Oracle`, ognuno dei quali tiene traccia di tutti i `Peer` che si registrano ad esso. Una volta ricevuta la registrazione, `Oracle` comunica agli altri due oracoli il nuovo `Peer`, in modo tale che tutti gli oracoli mantengano una lista aggiornata dei `Peer`.
 
@@ -95,7 +95,7 @@ Entrambe le classi hanno anche altri metodi ausiliari per supportare le funziona
 ### interface.py 
 - si occupa della gestione dell'interfaccia
 
-### Avvio Progetto
+# Avvio Progetto
 
 `Clonare il repository`: 
 ```
@@ -118,7 +118,7 @@ source nome_ambiente_virtuale/bin/activate
 pip install -r requirements.txt
 
 ```
-## Requisiti
+# Requisiti
 
 - Python 3.x
 - pyasn1==0.5.0
