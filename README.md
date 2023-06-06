@@ -17,27 +17,27 @@ Durante il processo di comunicazione, il `Peer` si impegna nella ricerca dell'in
 
 ## Funzionamento
 
-Abbiamo 9 file: Peer.py, Oracle.py, Chat.py, Query.py, Crypto.py, Communication.py, Setup.py, Realignment.py, Registration.py. Il file Peer.py contiene la classe "Peer" che serve per creare l'oggetto "peer" con tutti i metodi per la registrazione, la ricezione della comunicazione e l'invio di messaggi. Il metodo "send_message" si occupa dell'invio dei messaggi, il metodo "receive_message" per la ricezione dei messaggi, e infine il metodo "receive_query" riceve le risposte alle query fatte all'oracolo. Viene anche utilizzato un metodo "threading" per avviare 3 thread che gestiranno i metodi.
+Abbiamo 9 file: `Peer.py`, `Oracle.py`, `Chat.py`, `Query.py`, `Crypto.py`, `Communication.py`, `Setup.py`, `Realignment.py`, `Registration.py`. Il file `Peer.py` contiene la classe `Peer` che serve per creare l'oggetto `peer` con tutti i metodi per la registrazione, la ricezione della comunicazione e l'invio di messaggi. Il metodo `send_message` si occupa dell'invio dei messaggi, il metodo `receive_message` per la ricezione dei messaggi, e infine il metodo `receive_query` riceve le risposte alle query fatte all'oracolo. Viene anche utilizzato un metodo `threading` per avviare 3 thread che gestiranno i metodi.
 
-Poi abbiamo il file Oracle.py che contiene la classe "Oracle" che serve per istanziare un oggetto "oracolo" con tutti i suoi metodi per ricevere le query dai peer tramite il metodo "receive_query", ricevere le registrazioni tramite "receive_from_oracle", e per avviare i thread che gestiscono le operazioni su "oracle_setup".
+Poi abbiamo il file `Oracle.py` che contiene la classe `Oracle` che serve per istanziare un oggetto `oracolo` con tutti i suoi metodi per ricevere le query dai peer tramite il metodo `receive_query`, ricevere le registrazioni tramite `receive_from_oracle`, e per avviare i thread che gestiscono le operazioni su `oracle_setup`.
 
 ### Registrazione:
 #### Parte Peer:
-Ora iniziamo a descrivere l'operazione di registrazione. Quando il peer viene istanziato, viene eseguita una funzione chiamata "connection()" a cui viene passato il parametro "-r", che identifica la registrazione come operazione. All'interno di "connection()", verrà attivata la parte di codice per il parametro "-r" e verrà chiamata la funzione "register_with_oracle". Viene quindi creato il messaggio di registrazione che include il nickname e la chiave pubblica del peer creati durante l'istanziazione. Il messaggio di registrazione viene inviato tramite "oracle_socket" alla porta "oracle_ports", che sarà una tra 9999, 9996 o 9993. Questa porta predefinita verrà assegnata casualmente, in modo che il peer abbia un oracolo predefinito da utilizzare di default per le comunicazioni. Successivamente, il peer si mette in ascolto su "oracle_socket" in attesa della risposta dell'oracolo.
+Ora iniziamo a descrivere l'operazione di registrazione. Quando il peer viene istanziato, viene eseguita una funzione chiamata `connection()` a cui viene passato il parametro `-r`, che identifica la registrazione come operazione. All'interno di `connection()`, verrà attivata la parte di codice per il parametro `-r` e verrà chiamata la funzione `register_with_oracle`. Viene quindi creato il messaggio di registrazione che include il nickname e la chiave pubblica del peer creati durante l'istanziazione. Il messaggio di registrazione viene inviato tramite `oracle_socket` alla porta `oracle_ports`, che sarà una tra 9999, 9996 o 9993. Questa porta predefinita verrà assegnata casualmente, in modo che il peer abbia un oracolo predefinito da utilizzare di default per le comunicazioni. Successivamente, il peer si mette in ascolto su `oracle_socket` in attesa della risposta dell'oracolo.
 
 #### Parte Oracolo:
-Quando l'oracolo viene istanziato, crea 3 thread come accennato in precedenza: uno con il metodo "receive_query", uno con "receive_from_oracle" e uno con "receive_registration". L'oracolo ha la socket "register_socket" sintonizzata, che viene avviata dal thread collegato al metodo "receive_registration". Questo thread analizza la richiesta e, individuando il flag "-r", avvia la registrazione. Per prima cosa, il metodo verifica tramite "check_nickname" se il nickname è già stato utilizzato. In caso positivo, viene restituito un messaggio in cui si dice che il peer è già stato utilizzato e il metodo "check_nickname" non restituisce nulla. In caso negativo, viene restituito il nickname e viene registrato in "oracle.peer_list".
+Quando l'oracolo viene istanziato, crea 3 thread come accennato in precedenza: uno con il metodo `receive_query`, uno con `receive_from_oracle` e uno con `receive_registration`. L'oracolo ha la socket `register_socket` sintonizzata, che viene avviata dal thread collegato al metodo `receive_registration`. Questo thread analizza la richiesta e, individuando il flag `-r`, avvia la registrazione. Per prima cosa, il metodo verifica tramite `check_nickname` se il nickname è già stato utilizzato. In caso positivo, viene restituito un messaggio in cui si dice che il peer è già stato utilizzato e il metodo `check_nickname` non restituisce nulla. In caso negativo, viene restituito il nickname e viene registrato in `oracle.peer_list`.
 
-A questo punto ci sono due casi: se all'inizio non ci sono peer registrati, l'oracolo non restituirà nulla con il flag "-pr"; altrimenti restituirà il flag "-r" con una lista di vicini generata da "oracle.peer_list" in modo casuale. "peer_registration" chiama quindi il metodo "send_registration" per aggiornare gli altri oracoli con il nuovo peer che si è aggiunto alla rete. Infine, viene stampata la lista dei peer in "peer_list" nel terminale dell'oracolo.
+A questo punto ci sono due casi: se all'inizio non ci sono peer registrati, l'oracolo non restituirà nulla con il flag `-pr`; altrimenti restituirà il flag `-r` con una lista di vicini generata da `oracle.peer_list` in modo casuale. `peer_registration` chiama quindi il metodo `send_registration` per aggiornare gli altri oracoli con il nuovo peer che si è aggiunto alla rete. Infine, viene stampata la lista dei peer in `peer_list` nel terminale dell'oracolo.
 
 ### Comunicazione:
-Ora passiamo a descrivere la comunicazione tra i peer. Dopo la registrazione, quando viene avviata la classe "Peer", vengono avviati 3 thread che gestiscono i metodi "receive_query", "receive_message" e "send_message". I primi due rimangono in ascolto sulle rispettive socket "query_socket" e "peer_socket", mentre "send_message" utilizza la socket "peer_socket" per inviare messaggi. Prima di avviare l'invio di un messaggio, il metodo "send_message" stampa le istruzioni per inviare messaggi e richiede all'utente a chi si desidera inviare un messaggio. Il metodo imposta la variabile "ack" a False, che servirà per verificare se il messaggio è stato inviato correttamente. Successivamente, vengono chiamati i metodi "get_nick" e "get_address" per recuperare le informazioni necessarie per avviare la comunicazione con il nickname indicato dall'utente in "get_nick".
+Ora passiamo a descrivere la comunicazione tra i peer. Dopo la registrazione, quando viene avviata la classe `Peer`, vengono avviati 3 thread che gestiscono i metodi `receive_query`, `receive_message` e `send_message`. I primi due rimangono in ascolto sulle rispettive socket `query_socket` e `peer_socket`, mentre `send_message` utilizza la socket `peer_socket` per inviare messaggi. Prima di avviare l'invio di un messaggio, il metodo `send_message` stampa le istruzioni per inviare messaggi e richiede all'utente a chi si desidera inviare un messaggio. Il metodo imposta la variabile `ack` a False, che servirà per verificare se il messaggio è stato inviato correttamente. Successivamente, vengono chiamati i metodi `get_nick` e `get_address` per recuperare le informazioni necessarie per avviare la comunicazione con il nickname indicato dall'utente in `get_nick`.
 
-Il metodo "get_nick" controlla se il nickname è uguale a quello del mittente del messaggio e, in tal caso, restituisce un messaggio di errore e richiede di inserire un altro nickname, poiché non è possibile inviare messaggi a se stessi. Successivamente, verifica se nell'input vengono inseriti comandi speciali come "-d" e "-l", che servono rispettivamente per disconnettersi e visualizzare la lista dei vicini disponibili nella "peer_list" del peer. Una volta trovato un nickname valido tramite il metodo "get_address", vengono recuperate la porta e la chiave pubblica del destinatario del messaggio. Il metodo "get_address" verifica prima se le informazioni sono presenti nella "peer_list". Se non sono presenti, viene chiamato il metodo "send_query", che si occupa di cercare le informazioni necessarie per la comunicazione, prima tra i vicini e successivamente chiedendo all'oracolo, in modo da non sovraccaricarlo di richieste.
+Il metodo `get_nick` controlla se il nickname è uguale a quello del mittente del messaggio e, in tal caso, restituisce un messaggio di errore e richiede di inserire un altro nickname, poiché non è possibile inviare messaggi a se stessi. Successivamente, verifica se nell'input vengono inseriti comandi speciali come `-d` e `-l`, che servono rispettivamente per disconnettersi e visualizzare la lista dei vicini disponibili nella `peer_list` del peer. Una volta trovato un nickname valido tramite il metodo `get_address`, vengono recuperate la porta e la chiave pubblica del destinatario del messaggio. Il metodo `get_address` verifica prima se le informazioni sono presenti nella `peer_list`. Se non sono presenti, viene chiamato il metodo `send_query`, che si occupa di cercare le informazioni necessarie per la comunicazione, prima tra i vicini e successivamente chiedendo all'oracolo, in modo da non sovraccaricarlo di richieste.
 
-Il metodo "send_query" invia una richiesta di query ai vicini utilizzando il flag "-q", che viene gestito dal metodo "query_neighbors". Viene inviata una richiesta a tutti i vicini del peer tramite la socket "query_socket", a cui i vicini rimangono in ascolto. I vicini, tramite il thread attivo su "receive_query", ricevono la richiesta del peer che desidera inviare il messaggio. A questo punto, il vicino gestisce il flag "-q" e utilizza il metodo "peer_query" per cercare nella propria "peer_list" il peer destinatario. Se il peer viene trovato, le informazioni sull'indirizzo e la chiave pubblica del destinatario vengono restituite al peer mittente. Se il peer non viene trovato nella "peer_list", il vicino richiede le informazioni all'oracolo tramite il metodo "query_Oracle". Questo metodo scorre le porte degli oracoli e invia una stringa che contiene il tag "-q" e il nickname cercato tramite la socket "oracle_socket". L'oracolo, tramite il metodo "receive_query", gestisce la richiesta con il flag ACK "-q" e chiama il metodo "peer_query" per cercare nella propria lista di peer il peer destinatario. Se il peer viene trovato, le informazioni vengono restituite al peer mittente. Se il peer non viene trovato, l'oracolo restituisce tramite il tag "-n" e imposta l'indirizzo come (None, None, None), che viene quindi restituito al metodo "send_message". A questo punto, viene stampato "Peer non trovato" sul terminale.
+Il metodo `send_query` invia una richiesta di query ai vicini utilizzando il flag `-q`, che viene gestito dal metodo `query_neighbors`. Viene inviata una richiesta a tutti i vicini del peer tramite la socket `query_socket`, a cui i vicini rimangono in ascolto. I vicini, tramite il thread attivo su `receive_query`, ricevono la richiesta del peer che desidera inviare il messaggio. A questo punto, il vicino gestisce il flag `-q` e utilizza il metodo `peer_query` per cercare nella propria `peer_list` il peer destinatario. Se il peer viene trovato, le informazioni sull'indirizzo e la chiave pubblica del destinatario vengono restituite al peer mittente. Se il peer non viene trovato nella `peer_list`, il vicino richiede le informazioni all'oracolo tramite il metodo `query_Oracle`. Questo metodo scorre le porte degli oracoli e invia una stringa che contiene il tag `-q` e il nickname cercato tramite la socket `oracle_socket`. L'oracolo, tramite il metodo `receive_query`, gestisce la richiesta con il flag ACK `-q` e chiama il metodo `peer_query` per cercare nella propria lista di peer il peer destinatario. Se il peer viene trovato, le informazioni vengono restituite al peer mittente. Se il peer non viene trovato, l'oracolo restituisce tramite il tag `-n` e imposta l'indirizzo come (None, None, None), che viene quindi restituito al metodo `send_message`. A questo punto, viene stampato `Peer non trovato` sul terminale.
 
-Se l'indirizzo viene trovato, l'utente può inserire il messaggio da inviare tramite input. Il messaggio non può superare i 100 caratteri. Successivamente, viene chiamato il metodo "sending", che ha come parametri il messaggio da inviare e l'indirizzo a cui inviarlo. Questo metodo cripta il messaggio utilizzando il metodo "crypt" e lo invia al peer destinatario tramite la socket "peer_socket". Il metodo "receive_message", che rimane sempre in ascolto, prende il messaggio e l'indirizzo del peer mittente e chiama il metodo "receiving". Questo metodo decifra il messaggio utilizzando il metodo "decrypt" e controlla se il nickname del peer mittente è un suo vicino. Se non lo è, viene chiamato il metodo "ask_key", che invia una stringa contenente il flag "-k" e il nickname di cui si desidera ottenere la chiave pubblica tramite la socket "oracle_socket". L'oracolo riceve la query sulla socket "query_socket" nel metodo "receive_query" e chiama il metodo "give_key" per cercare nella propria lista la chiave e inviarla. Una volta ricevuta la chiave, il metodo "receiving" salva il nuovo vicino nella propria lista "peer_list" e lo registra. In entrambi i casi, sia se il peer mittente è un vicino sia se non lo è, il metodo stampa sul terminale il nickname del mittente e il messaggio ricevuto. Infine, viene inviato un ack di conferma di ricezione sulla socket "peer_socket" tramite il metodo "send_ack", che viene ricevuto dal peer mittente tramite il metodo "receiving_ack".
+Se l'indirizzo viene trovato, l'utente può inserire il messaggio da inviare tramite input. Il messaggio non può superare i 100 caratteri. Successivamente, viene chiamato il metodo `sending`, che ha come parametri il messaggio da inviare e l'indirizzo a cui inviarlo. Questo metodo cripta il messaggio utilizzando il metodo `crypt` e lo invia al peer destinatario tramite la socket `peer_socket`. Il metodo `receive_message`, che rimane sempre in ascolto, prende il messaggio e l'indirizzo del peer mittente e chiama il metodo `receiving`. Questo metodo decifra il messaggio utilizzando il metodo `decrypt` e controlla se il nickname del peer mittente è un suo vicino. Se non lo è, viene chiamato il metodo `ask_key`, che invia una stringa contenente il flag `-k` e il nickname di cui si desidera ottenere la chiave pubblica tramite la socket `oracle_socket`. L'oracolo riceve la query sulla socket `query_socket` nel metodo `receive_query` e chiama il metodo `give_key` per cercare nella propria lista la chiave e inviarla. Una volta ricevuta la chiave, il metodo `receiving` salva il nuovo vicino nella propria lista `peer_list` e lo registra. In entrambi i casi, sia se il peer mittente è un vicino sia se non lo è, il metodo stampa sul terminale il nickname del mittente e il messaggio ricevuto. Infine, viene inviato un ack di conferma di ricezione sulla socket `peer_socket` tramite il metodo `send_ack`, che viene ricevuto dal peer mittente tramite il metodo `receiving_ack`.
 
 ## Componenti
 
@@ -79,30 +79,30 @@ Entrambe le classi hanno anche altri metodi ausiliari per supportare le funziona
 
 
 ### chat.py 
-- metodi per l'invio e ricezione dei messaggi
+> metodi per l'invio e ricezione dei messaggi
 ### communication.py 
-- metodi per la comunicazioni tra gli oracoli
+> metodi per la comunicazioni tra gli oracoli
 ### query.py 
-- metodi per la richiesta dell'indirizzo
+> metodi per la richiesta dell'indirizzo
 ### registration.py 
-- metodi che servono per la gestione della registrazione
+> metodi che servono per la gestione della registrazione
 ### realignment.py 
-- riallineamento degli oracoli
+> riallineamento degli oracoli
 ### crypto.py 
-- si occupa dei della criptazione dei messaggi
+> si occupa dei della criptazione dei messaggi
 ### setup.py 
-- ci sono metodi che servono per l'inizializzaione del peer/orac
+> ci sono metodi che servono per l'inizializzaione del peer/orac
 ### interface.py 
-- si occupa della gestione dell'interfaccia
+> si occupa della gestione dell'interfaccia
 
 # Avvio Progetto
 
-`Clonare il repository`: 
+## Clonare il repository: 
 ```
 git clone https://github.com/antoniospadea/Chat-Distribuita.git
 
 ```
-`Creare ed attivare un ambiente virtuale`: 
+## Creare ed attivare un ambiente virtuale: 
 
 ```
 python -m venv ChatP2P_ambiente_virtuale
@@ -112,7 +112,7 @@ python -m venv ChatP2P_ambiente_virtuale
 source nome_ambiente_virtuale/bin/activate
 
 ```
-`Installare le dipendenze`
+## Installare le dipendenze
 
 ```
 pip install -r requirements.txt
