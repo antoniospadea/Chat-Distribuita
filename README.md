@@ -25,6 +25,8 @@ Poi abbiamo il file `Oracle.py` che contiene la classe `Oracle` che serve per is
 #### Parte Peer:
 Ora iniziamo a descrivere l'operazione di registrazione. Quando il peer viene istanziato, viene eseguita una funzione chiamata `connection()` a cui viene passato il parametro `-r`, che identifica la registrazione come operazione. All'interno di `connection()`, verrà attivata la parte di codice per il parametro `-r` e verrà chiamata la funzione `register_with_oracle`. Viene quindi creato il messaggio di registrazione che include il nickname e la chiave pubblica del peer creati durante l'istanziazione. Il messaggio di registrazione viene inviato tramite `oracle_socket` alla porta `oracle_ports`, che sarà una tra 9999, 9996 o 9993. Questa porta predefinita verrà assegnata casualmente, in modo che il peer abbia un oracolo predefinito da utilizzare di default per le comunicazioni. Successivamente, il peer si mette in ascolto su `oracle_socket` in attesa della risposta dell'oracolo.
 
+![Avvio dell'Oracolo senza nessun Peer Registrato](./Foto/Avvio_Oracolo.jpeg)
+
 #### Parte Oracolo:
 Quando l'oracolo viene istanziato, crea 3 thread come accennato in precedenza: uno con il metodo `receive_query`, uno con `receive_from_oracle` e uno con `receive_registration`. L'oracolo ha la socket `register_socket` sintonizzata, che viene avviata dal thread collegato al metodo `receive_registration`. Questo thread analizza la richiesta e, individuando il flag `-r`, avvia la registrazione. Per prima cosa, il metodo verifica tramite `check_nickname` se il nickname è già stato utilizzato. In caso positivo, viene restituito un messaggio in cui si dice che il peer è già stato utilizzato e il metodo `check_nickname` non restituisce nulla. In caso negativo, viene restituito il nickname e viene registrato in `oracle.peer_list`.
 
@@ -116,20 +118,23 @@ pip install -r requirements.txt
 ```
 
 ## Avviare i tre Oracoli
-Aprire un terminale nella directory del progetto e avviare i tre file su 3 terminali diversi, con i seguenti comandi
-Terminale 1
+Per avviare i tre `Oracoli` aprire 3 terminali nella `directory` del progetto. Avviare i file `Oracle1.py`, `Oracle2.py`, `Oracle3.py` su 3 terminali diversi, con i seguenti comandi
+>Terminale 1
 ```
 python Oracle1.py
 ```
-Terminale 2
+>Terminale 2
 ```
 python Oracle2.py
 ```
-Terminale 3
+>Terminale 3
 ```
 python Oracle3.py
 ```
-
+Per avviare un `Peer` apri un terminale nella `directory` del progetto e esegui il seguente comando per avviare il file `Peer.py`
+```
+python Peer.py
+```
 # Requisiti
 
 - Python 3.x
