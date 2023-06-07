@@ -7,7 +7,7 @@ from interface import *
 
 class Oracle:
     """
-    La classe Oracolo ha come attributi il nickname, l'ip e la porta.
+    La classe Oracolo ha come attributi il nickname, l'ip e la porta. 
     Inoltre assegnamo degli attributi quali:
     self.peer_list: dizionario che ha come chiave il nickname dei peer e 
                     come valore la tupla di 3 elementi (ip,porta,chiave)
