@@ -105,7 +105,6 @@ def insert_Nickname():
         if nick == '-d':
             exit()
     nick = nick.upper()
-    print_bar("Peer Avviato")
     return nick
 
 
