@@ -7,6 +7,24 @@ from interface import *
 #####################################  FUNZIONI REGISTRAZIONE ORACOLO  #################################################
 
 def check_nickname(oracle, nick, address):
+    """
+    La funzione controlla se il nickname è già presente nella lista dei peer
+    dell'oracolo
+
+    Parameters
+    ----------
+    oracle : è un'istanza della classe Oracle1, Oracle2 o Oracle3.
+    nick : stringa del nickname da controllare
+    aaddress : tupla di 3 elementi:
+        1. stringa dell'indirizzo ip
+        2. numero intero della porta 
+        3. chiave pubblica
+
+    Returns
+    -------
+    nick : stringa del nickname controllata
+
+    """
     if nick in oracle.peer_list.keys():
         response = f"-n{nick} già utilizzato, scegliere un altro nickname"
         oracle.registr_socket.sendto(response.encode(), address)
@@ -16,18 +34,39 @@ def check_nickname(oracle, nick, address):
 
 
 def generate_neighbors(oracle):
-    # Creo la lista dei vicini usando il dizionario peer_list e la libreria json
-    # Estraggo 3 chiavi random
+    """
+    La funzione genera la lista dei vicini usando il dizionario peer_list e la 
+    libreria json
+    
+    Parameters
+    ----------
+    oracle : è un'istanza della classe Oracle1, Oracle2 o Oracle3.
+
+    Returns
+    -------
+    neighbors : lista dei vicini
+
+    """
     random_keys = random.sample(list(oracle.peer_list.keys()), 3)
-    # Estraggo i valori corrispondenti alle chiavi
     random_values = [oracle.peer_list[key] for key in random_keys]
-    # Creo la lista dei vicini in modo che sia facile da ricevere dal Peer
     neighbors = json.dumps(dict(zip(random_keys, random_values)))
     return neighbors
 
 
 def peer_registration(oracle, message, address):
-    # il messaggio è del tipo -r nickname-k-chiave_pubblica
+    """
+    La funzione si occupa della registrazione del peer
+
+    Parameters
+    ----------
+    oracle : è un'istanza della classe Oracle1, Oracle2 o Oracle3.
+    message : stringa contente il tag '-r', il nickname, '-k-' e la chiave pubblica
+    address : tupla di 3 elementi:
+        1. stringa dell'indirizzo ip
+        2. numero intero della porta 
+        3. la stringa della chiave pubblica
+
+    """
     nick, key = message.split('-k-')
     nick = nick[2:]
     nick = check_nickname(oracle, nick, address)
@@ -37,21 +76,30 @@ def peer_registration(oracle, message, address):
             response = f"-r{neighbors}"
         else:
             response = f"-pr"
-        # Salviamo la porta ma -2
         new_peer = (address[0], address[1] - 2, key)
         oracle.peer_list[nick] = new_peer
         oracle.registr_socket.sendto(response.encode(), address)
-        # Chiamo il metodo per inviare il nuovo peer agli altri Oracle
         send_registration(oracle, nick, new_peer)
         print_list(oracle.peer_list)
 
 
 def peer_disconnection(oracle, message, address):
+    """
+    La funzione si occupa della disconessione del peer
+
+    Parameters
+    ----------
+    oracle : è un'istanza della classe Oracle1, Oracle2 o Oracle3.
+    message : stringa contente il tag '-d' e il nickname
+    address : tupla di 3 elementi:
+        1. stringa dell'indirizzo ip
+        2. numero intero della porta 
+        3. la stringa della chiave pubblica
+
+    """
     nick = message[3:]
-    # Controlla se il nickname è presente nella lista dei Peer registrati e in caso eliminalo
     if nick in oracle.peer_list.keys():
         del oracle.peer_list[nick]
-        # Invia la conferma di deregistrazione al Peer
         response = f"Deregistrazione di {nick} avvenuta con successo"
         oracle.registr_socket.sendto(response.encode(), address)
         send_disconnection(oracle, nick)
@@ -62,6 +110,15 @@ def peer_disconnection(oracle, message, address):
 #####################################  FUNZIONI REGISTRAZIONE PEER  ###################################################
 
 def update_neighbors(peer, neighbors):
+    """
+    La funzione aggiorna i vicini del peer
+
+    Parameters
+    ----------
+    peer : è un'istanza della classe Peer
+    neighbors : lista dei vicini
+
+    """
     neighbors = neighbors.split('-r')[1]
     neighbors = json.loads(neighbors)
     for key in neighbors.keys():
@@ -70,6 +127,15 @@ def update_neighbors(peer, neighbors):
 
 
 def register_with_oracle(peer, oracle_port):
+    """
+    La funzione si occupa della registrazione del peer ad un oracolo
+
+    Parameters
+    ----------
+    peer : è un'istanza della classe Peer
+    oracle_port : numero intero che rappresenta la porta dell'oracolo
+
+    """
     registration_data = f"-r{peer.nickname}-k-{peer.public_key}"
     oracle = ('127.0.0.1', oracle_port)
     peer.oracle_socket.sendto(registration_data.encode(), oracle)
@@ -92,16 +158,36 @@ def register_with_oracle(peer, oracle_port):
 
 
 def disconnect_with_oracle(peer, oracle_port):
+    """
+    La funzione si occupa di inviare la disconnesione del peer da un oracolo
+    tramite la socket oracle_socket
+
+    Parameters
+    ----------
+    peer : è un'istanza della classe Peer
+    oracle_port : numero intero che rappresenta la porta dell'oracolo da cui 
+                  dsiconnettersi
+
+    """
     disconnection_data = f"-d {peer.nickname}"
     oracle = ('127.0.0.1', oracle_port)
     peer.oracle_socket.sendto(disconnection_data.encode(), oracle)
-    # Ricezione della risposta Se la risposta è positiva, allora l'oracolo ha disconnesso il peer
     response, oracle_address = peer.oracle_socket.recvfrom(2048)
     response = response.decode()
     print(response)
 
 
 def connection(peer, flag):
+    """
+    La funzione si occupa di chiamare le funzioni giuste a seconda del tag che
+    possono essere '-r' e '-d'
+
+    Parameters
+    ----------
+    peer : è un'istanza della classe Peer
+    flag : stringa contenente il tag
+
+    """
     for port in peer.oracle_ports:
         if flag == '-r':
             try:
@@ -118,7 +204,6 @@ def connection(peer, flag):
                 continue
     else:
         print_red("Nessun oracolo disponibile, riprovare più tardi")
-        # attendiamo un input dall'utente per riprovare o uscire
         while True:
             choice = input("Premere 1 per riprovare, 2 per uscire: ")
             if choice == '1':
@@ -132,6 +217,15 @@ def connection(peer, flag):
 
 
 def disconnect_with_neighbours(peer):
+    """
+    La funzione si occupa di inviare la disconnesione del peer dai suoi vicini
+    tramite la socket query_socket
+
+    Parameters
+    ----------
+    peer : è un'istanza della classe Peer
+
+    """
     for neighbor in peer.neighbor_list.keys():
         disconnection_data = f"-d{peer.nickname}"
         neighbor_address = (peer.neighbor_list[neighbor][0], peer.neighbor_list[neighbor][1] + 1)
@@ -139,6 +233,15 @@ def disconnect_with_neighbours(peer):
 
 
 def delete_neighbor(peer, nickname):
+    """
+    La funzione si occupa di eliminare un nickname dai vicini del peer
+
+    Parameters
+    ----------
+    peer : è un'istanza della classe Peer
+    nickname : stringa del nickname che si è disconnesso
+
+    """
     nickname = nickname.split('-d')[1]
     if nickname in peer.neighbor_list.keys():
         del peer.neighbor_list[nickname]

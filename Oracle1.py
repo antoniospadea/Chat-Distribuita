@@ -6,6 +6,26 @@ from interface import *
 
 
 class Oracle:
+    """
+    La classe Oracolo ha come attributi il nickname, l'ip e la porta.
+    Inoltre assegnamo degli attributi quali:
+    self.peer_list: dizionario che ha come chiave il nickname dei peer e 
+                    come valore la tupla di 3 elementi (ip,porta,chiave)
+
+    self.communication_socket: socekt per la gestione della comunicazione
+                                tra oracoli
+    self.registr_socket: socket per la gestione della registrazione
+    self.query_socket: socket per la gestione delle query
+
+    Per prima cosa la classe chiama il metodo oracle_setup()
+
+    Parameters
+    ----------
+    nick : stringa contenente il nome dell'oracolo
+    ip : stringa contenente l'indirizzo ip
+    port : il numero intero della porta
+
+    """
     def __init__(self, nick, ip, port):
         self.peer_list = {}
         if ip == 'localhost':
@@ -20,6 +40,10 @@ class Oracle:
         self.oracle_setup()
 
     def receive_query(self):
+        """
+        Il metodo gestice le richieste dei peer
+
+        """
         while True:
             try:
                 message, address = self.query_socket.recvfrom(1024)
@@ -34,6 +58,10 @@ class Oracle:
                 pass
 
     def receive_from_oracle(self):
+        """
+        Il metodo gestisce la comunicazione con gli altri oracoli
+
+        """
         while True:
             try:
                 message, address = self.communication_socket.recvfrom(65536)
@@ -50,6 +78,10 @@ class Oracle:
                 pass
 
     def receive_registration(self):
+        """
+        Il metodo gestisce la registrazione di un peer
+
+        """
         while True:
             message, address = self.registr_socket.recvfrom(1024)
             message = message.decode()
@@ -61,15 +93,20 @@ class Oracle:
                 pass
 
     def oracle_setup(self):
+        """
+        Il metodo gestisce l'inizializzazione dell'oracolo
+
+        """
         interface_Oracolo(self.ip, self.port)
         thread_setup(self.receive_query)
         thread_setup(self.receive_from_oracle)
         thread_setup(self.receive_registration)
         realignment_ask(self)
 
-
-# Creiamo un Oracolo per testare il funzionamento della classe
 if __name__ == '__main__':
+    """
+    Creiamo l'Oracolo1
+    """
     ip = 'localhost'
     port = 9999
     nick = 'Oracle1'
