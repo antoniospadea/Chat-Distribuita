@@ -131,7 +131,7 @@ if __name__ == '__main__':
     Creiamo un peer
     """
     ip = 'localhost'
-    port = randint(1000, 5000)
+    port = random_port()
     oracle_port = choice([9999, 9996, 9993])
     nick = interface_Peer()
     peer = Peer(nick, ip, port, oracle_port)
