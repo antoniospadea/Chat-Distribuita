@@ -47,3 +47,14 @@ def print_list(list: dict):
     output = ', '.join(
         [f"{key}: ({', '.join(map(str, values[:2]))})" for key, values in list.items()])
     print(f"Lista dei Peer registrati: {output}")
+    
+    
+def random_port():
+    """
+    La funzione restituisce una porta casuale tra 1000 e 5000
+    
+    """
+    port_pool = list(range(1000, 5001, 3))
+    random.shuffle(port_pool)
+    port = port_pool.pop()
+    return port
