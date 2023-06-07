@@ -1,4 +1,4 @@
-from random import randint, choice
+from random import  choice
 from chat import *
 from registration import *
 from crypto import *
