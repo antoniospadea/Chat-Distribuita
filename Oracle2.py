@@ -40,10 +40,6 @@ class Oracle:
         self.oracle_setup()
 
     def receive_query(self):
-        """
-        Il metodo gestice le richieste dei peer
-
-        """
         while True:
             try:
                 message, address = self.query_socket.recvfrom(1024)
@@ -58,10 +54,6 @@ class Oracle:
                 pass
 
     def receive_from_oracle(self):
-        """
-        Il metodo gestisce la comunicazione con gli altri oracoli
-
-        """
         while True:
             try:
                 message, address = self.communication_socket.recvfrom(65536)
@@ -78,10 +70,6 @@ class Oracle:
                 pass
 
     def receive_registration(self):
-        """
-        Il metodo gestisce la registrazione di un peer
-
-        """
         while True:
             message, address = self.registr_socket.recvfrom(1024)
             message = message.decode()
@@ -93,20 +81,15 @@ class Oracle:
                 pass
 
     def oracle_setup(self):
-        """
-        Il metodo gestisce l'inizializzazione dell'oracolo
-
-        """
         interface_Oracolo(self.ip, self.port)
         thread_setup(self.receive_query)
         thread_setup(self.receive_from_oracle)
         thread_setup(self.receive_registration)
         realignment_ask(self)
 
+
+# Creiamo un Oracolo per testare il funzionamento della classe
 if __name__ == '__main__':
-    """
-    Creiamo l'Oracolo2
-    """
     ip = 'localhost'
     port = 9996
     nick = 'Oracle2'

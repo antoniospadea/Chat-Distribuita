@@ -1,39 +1,10 @@
-from random import randint, choice
+from random import choice
 from chat import *
 from registration import *
 from crypto import *
 
 
 class Peer:
-    """
-        La classe Peer ha come attributi il nickname, l'ip, la porta e l'oracle_port
-        Inoltre assegnamo degli attributi quali:
-        self.neighbor_list: dizionario che ha come chiave il nickname dei peer 
-                            vicini e come valore la tupla di 3 elementi
-                            (ip,porta,chiave)
-        
-        self.oracle_ports: lista delle porte degli oracoli
-        
-        self.oracle_socket: socekt per la gestione della comunicazione
-                                   con l'oracolo
-        self.query_socket: socket per la gestione delle query ai peer
-        self.peer_socket: socket per la gestione della comunicazione con gli
-                          altri peer
-                          
-        self.ack: attributo per la gestione degli ack
-        self.public_key: attributo che si salva la chiave pubblica
-        self.private_key: attributo che si salva la chiave privata
-        
-        Per prima cosa la classe chiama il metodo threading_setup()
-
-        Parameters
-        ----------
-        nick : stringa contenente il nome del Peer
-        ip : stringa contenente l'indirizzo ip
-        port : il numero intero della porta
-        oracle_port : il numero intero della porta dell'oracle di default
-
-        """
     def __init__(self, nick, ip, port, oracle_port):
         if ip == 'localhost':
             self.ip = '127.0.0.1'
@@ -56,9 +27,6 @@ class Peer:
         self.threading()
 
     def send_message(self):
-        """
-        Il metodo si occupa dell'invio dei messaggi ai peer
-        """
         avvio_chat()
         while True:
                 self.ack = False
@@ -75,10 +43,6 @@ class Peer:
                 sending(self, message, address)
 
     def receive_query(self):
-        """
-        Il metodo si occupa della gestione delle query
-
-        """
         while True:
                 try:
                     query, neighbor_address = self.query_socket.recvfrom(2048)
@@ -94,10 +58,6 @@ class Peer:
                     delete_neighbor(self, query)
 
     def receive_message(self):
-        """
-        Il metodo si occupa della recezione dei messaggi dei peer
-
-        """
         while True:
                 try:
                     message, peer_address = self.peer_socket.recvfrom(2048)
@@ -107,31 +67,20 @@ class Peer:
                     continue
 
     def become_oracle(self):
-        """
-        Il metodo si occupa di far diventare un peer un oracolo in caso di
-        interruzione di uno dei tre oracoli
-
-        """
         pass
 
         # DA COMPLETARE
     def threading(self):
-        """
-        Il metodo si occupa di inizializzare i 3 thread
-
-        """
         print(f"Peer inizializzato: IP=\033[1;33m{self.ip}\033[0m, Porta=\033[1;33m{self.port}\033[0m")
         thread_setup(self.receive_query)
         thread_setup(self.receive_message)
         thread_setup(self.send_message)
 
 
-if __name__ == '__main__':
-    """
-    Creiamo un peer
-    """
-    ip = 'localhost'
-    port = randint(1000, 5000)
-    oracle_port = choice([9999, 9996, 9993])
-    nick = interface_Peer()
-    peer = Peer(nick, ip, port, oracle_port)
+
+
+ip = 'localhost'
+port = random_port()
+oracle_port = choice([9999, 9996, 9993])
+nick = interface_Peer()
+peer = Peer(nick, ip, port, oracle_port)
